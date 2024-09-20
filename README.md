@@ -1,13 +1,13 @@
-#Kiwi interview web application
+# Kiwi interview web application
 
-##Task
+## Task
 
 Your task is to implement a web application that will allow a client to retrieve prices of flights
 between source and destination country on a given day. Moreover, the clients of your service
 want to see just the cheapest price per source and destination airport. They are interested in
 departing from/arriving at only the top 3 popular airports of the selected countries.
 
-###Example output
+### Example output
 ```json
 [
   {
@@ -23,7 +23,7 @@ departing from/arriving at only the top 3 popular airports of the selected count
 ]
 ```
 
-##Deployment
+## Deployment
 to run all the services please build them first with command `docker-compose build`
 
 Once the build is finished please run `docker-compose up` or if you want to run it in 
@@ -39,7 +39,7 @@ you can find apidocs on following address
 
 http://localhost/api/doc/
 
-##Overview
+## Overview
 We are using nginx for a webserver and load balancing of requests that are received on
 the server. Nginx is using least connections strategy to forward the requests to the container
 that is least currently used.
