@@ -1,3 +1,4 @@
+import os
 from typing import List, Optional, Dict
 
 import aiohttp
@@ -12,7 +13,7 @@ class KiwiConnector:
     _BASE_URL = 'https://api.tequila.kiwi.com'
     _HEADERS = {
         'accept': 'application/json',
-        'apikey': 'lAXe9eK9qS1vaCwJzv_cRaINlU6uBAk2',
+        'apikey': os.environ.get('APIKEY'),
         'User-Agent': 'interview-task-Miroslav-Kovac'
     }
     

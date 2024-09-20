@@ -24,6 +24,9 @@ departing from/arriving at only the top 3 popular airports of the selected count
 ```
 
 ## Deployment
+Under app you will find secret.env.example file please make a copy with name secret.env and change
+<API_KEY> with corresponding api key which will be used with each request in header. 
+
 to run all the services please build them first with command `docker-compose build`
 
 Once the build is finished please run `docker-compose up` or if you want to run it in 
