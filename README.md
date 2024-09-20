@@ -67,6 +67,9 @@ Second DB is for the requested data. If someone would request same destination a
 with the same date as was done already it will return response from the cache. Expiration is set for
 one day. LRU is applied as well in here for 200 mb.
 
+If for some reason we are not able to connect to redis the server will still run and all the requests
+will be done straight to the main API and nothing will be cached nor cache will be used.
+
 I have implemented apidocs as well running on /api/doc/ endpoint.
 
 
@@ -90,7 +93,7 @@ I have implemented apidocs as well running on /api/doc/ endpoint.
 
 
 ## Problems
-since I have two countries (source and destination) with full name I need to make two requests to get their respective IDs
+Since I have two countries (source and destination) with full name I need to make two requests to get their respective IDs
 and then another two requests to get top airports with received country IDs. This is 4 requests. The task is saying
 that I need to return best price per source and destination airport. This made me do another 9 requests. I was trying to find
 better way but simply comma separate to and from airports would not give me all the combinations. And I didn t want to assume
@@ -98,3 +101,10 @@ that if I will make output of 200 flights then all the combinations would be cov
 not be covered. I found param which said one for city. But there can be more than one airport per city and so our
 top three can be in single city and therefor I would not receive correct result. I did not find any other param to make such request
 in single request or at least less than 9 requests. For this reason I have received 429 too many requests error code from time to time.
+
+## Local Debugging
+Set env variable APIKEY to your api key
+
+Run the main.py file which will spawn you webserver and you can make requests on 0.0.0.0:8080.
+if you don t have local redis running it will keep trying to reconnect to it and no caching will be applied but
+application will still work.

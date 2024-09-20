@@ -4,18 +4,9 @@ from aiohttp import web
 from aiohttp_swagger3 import SwaggerDocs, SwaggerUiSettings, SwaggerInfo
 
 from api.request_handlers.flight import FlightHandler
-#from cache.redis_cache import RedisCache
 
 
 logger = logging.getLogger(__name__)
-
-
-# async def redis_connect(app):
-#     app['redis'] = await RedisCache(redis_host='redis')
-#
-#
-# async def redis_disconnect(app):
-#     logger.info("Redis connection closed.")
 
 
 def create_app():
@@ -24,7 +15,6 @@ def create_app():
     flight_handler = FlightHandler()
 
     app.on_startup.append(flight_handler.startup)
-    #app.on_cleanup.append(redis_disconnect)
 
     swagger_info = SwaggerInfo(
         title="Kiwi flight API",
