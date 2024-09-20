@@ -44,7 +44,7 @@ http://localhost/api/doc/
 
 ## Overview
 We are using nginx for a webserver and load balancing of requests that are received on
-the server. Nginx is using least connections strategy to forward the requests to the container
+the server. Nginx is using the least connections strategy to forward the requests to the container
 that is least currently used.
 
 Our application is running on aiohttp webserver where we have single endpoint that can receive
