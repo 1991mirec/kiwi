@@ -1,0 +1,3 @@
+aiohttp==3.10.5
+redis==5.0.8
+aiohttp-swagger3==0.9.0

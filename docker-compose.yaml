@@ -1,0 +1,37 @@
+services:
+  aiohttp:
+    build:
+      context: app
+    expose:
+      - "8080"
+    networks:
+      - aiohttp_net
+      - redis_net
+    deploy:
+      replicas: 3
+
+  redis:
+    image: "redis:alpine"
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    networks:
+      - redis_net
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx_proxy
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+    depends_on:
+      - aiohttp
+    networks:
+      - aiohttp_net
+
+networks:
+  aiohttp_net:
+    driver: bridge
+  redis_net:
+    driver: bridge
