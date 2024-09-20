@@ -6,6 +6,7 @@ class WrongDateError(web.HTTPBadRequest):
         super().__init__(text=f'Date {input_date} is not of format "DD/MM/YYYY"')
         self.content_type = 'application/json'
 
+
 class CountryDoesNotExistError(web.HTTPBadRequest):
     def __init__(self, country):
         super().__init__(text=f'country {country} does not exist. Please try to search with different country')
