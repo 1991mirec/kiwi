@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_app():
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     app = web.Application()
     flight_handler = FlightHandler()
 

@@ -110,11 +110,15 @@ each request done is being cached
 Since I have two countries (source and destination) with full name I need to make two requests to get their respective IDs
 and then another two requests to get top airports with received country IDs. This is 4 requests. The task is saying
 that I need to return best price per source and destination airport. This made me do another 9 requests. I was trying to find
-better way but simply comma separate to and from airports would not give me all the combinations. And I didn t want to assume
+better way but simply comma separate to and from airports would not give me all the combinations. And I didn`t want to assume
 that if I will make output of 200 flights then all the combinations would be covered. I am sure there would be cases where it would
 not be covered. I found param which said one for city. But there can be more than one airport per city and so our
 top three can be in single city and therefor I would not receive correct result. I did not find any other param to make such request
 in single request or at least less than 9 requests. For this reason I have received 429 too many requests error code from time to time.
+
+So worst case scenario is if I don`t have any country cached and any flights cached, which would be 13 requests made. If user keep
+switching countries I have to repeat all 13 requests over and over again. only if he reuses country or chooses same flight exactly I can reuse
+part of the cache or get everything from the cache
 
 
 ## Local Debugging
@@ -122,5 +126,5 @@ in single request or at least less than 9 requests. For this reason I have recei
 Set env variable APIKEY to your api key
 
 Run the main.py file which will spawn you webserver and you can make requests on 0.0.0.0:8080.
-if you don t have local redis running it will keep trying to reconnect to it and no caching will be applied but
+if you don`t have local redis running it will keep trying to reconnect to it and no caching will be applied but
 application will still work.

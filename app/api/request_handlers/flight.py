@@ -116,7 +116,7 @@ class FlightHandler:
             # for such date and return if yes
             json_resp = await self._flight_cache.get_flights(f'{",".join(source_airports)}-{",".join(destination_airports)}-{departure_date}')
             if json_resp:
-                return web.json_response(json_resp)
+                return web.json_response(sorted(json_resp, key=lambda x: x['price']))
 
             # if we don t have yet flights searched for such countries and date, search for each source airport with each destination airport
             coros = []
