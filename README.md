@@ -7,7 +7,8 @@ between source and destination country on a given day. Moreover, the clients of 
 want to see just the cheapest price per source and destination airport. They are interested in
 departing from/arriving at only the top 3 popular airports of the selected countries.
 
-### Example output
+#### Example output
+
 ```json
 [
   {
@@ -23,7 +24,9 @@ departing from/arriving at only the top 3 popular airports of the selected count
 ]
 ```
 
+
 ## Deployment
+
 Under app folder you will find secret.env.example file please make a copy with name secret.env and change
 <API_KEY> with corresponding api key which will be used with each request in header. 
 
@@ -42,7 +45,9 @@ you can find apidocs on following address
 
 http://localhost/api/doc/
 
+
 ## Overview
+
 We are using nginx for a webserver and load balancing of requests that are received on
 the server. Nginx is using the least connections strategy to forward the requests to the container
 that is least currently used.
@@ -54,18 +59,18 @@ request with 3 parameters.
 2. destination country
 3. date of departure in format of DD-MM-YYYY
 
-I use Redis for caching where we have two different DBs. One is for caching countries to their
-respective IDs. This we needed to do because each we needed to get top 3 airports of each country
+I use Redis for caching where we have two different DBs. One is for caching countries and country ids to their
+respective IDs. This we needed to do because we needed to get top 3 airports of each country
 in both source and destination. Getting those airports I could only with country ID which I could 
 get only from separate API. Therefor once I receive top 3 airports of a country I cache it where 
-key is country and values is comma separate countries. Here I use expiration of 3 days after value
-is cached. Also I have setup the database to use LRU (least recently used) strategy where I have
-limited the amount of data to be saved to 200 mb and after that the least recently used key will be
+key is country and values is comma separate airports. I cache country id as well to comma separate airports.
+Here I use expiration of 3 days after value is cached. I have setup the database to use LRU (least recently used)
+strategy where I have limited the amount of data to be saved to 500 mb and after that the least recently used key will be
 automatically dropped from cache not to overwhelm the environment.
 
 Second DB is for the requested data. If someone would request same destination and source countries
 with the same date as was done already it will return response from the cache. Expiration is set for
-one day. LRU is applied as well in here for 200 mb.
+one day. LRU is applied as well in here for 500 mb.
 
 If for some reason we are not able to connect to redis the server will still run and all the requests
 will be done straight to the main API and nothing will be cached nor cache will be used.
@@ -74,15 +79,23 @@ I have implemented apidocs as well running on /api/doc/ endpoint.
 
 
 ## Application steps
+
 1. request is received and params are parsed. If there is any missing param user will be notified
-2. checking from cache if there was already such request done with same params and if yes returning data from cache
-3. if not the searching from cache each country to find if we have cached top airports of the country
-4. if not making request to get country id
-   - once I have country ID I am making request to get top 3 airports of the country
-5. once I have both source and destination airports I am making request to each combination and trying to get best price
-6. output of all the data are presented to the user in sorted by price manner
+2. searching from cache each country to find if we have cached top airports of the country
+3. if not making request to get country id and trying to search that in cache to find top 3 airports. This is due to user may do some typo and country could have been already cached
+4. if not cached I have country ID from previous request and I am making request to get top 3 airports of the country
+5. checking from cache if there was already such request done with same params and if yes returning data from cache
+6. once I have both source and destination airports I am making request to each combination and trying to get best price
+7. output of all the data are presented to the user in sorted by price manner
+
+each request done is being cached
+- caching user give countries to top three airports
+- caching calculated IDs of the countries to top three airports
+- caching searched flights by source and destination airports with date
+
 
 ## Assumptions made
+
 - Single adult with no children is making the request and therefor prices are given for single adult
 - Economy class is chosen for flight search
 - The requester does not need any bags with him :)
@@ -93,6 +106,7 @@ I have implemented apidocs as well running on /api/doc/ endpoint.
 
 
 ## Problems
+
 Since I have two countries (source and destination) with full name I need to make two requests to get their respective IDs
 and then another two requests to get top airports with received country IDs. This is 4 requests. The task is saying
 that I need to return best price per source and destination airport. This made me do another 9 requests. I was trying to find
@@ -102,7 +116,9 @@ not be covered. I found param which said one for city. But there can be more tha
 top three can be in single city and therefor I would not receive correct result. I did not find any other param to make such request
 in single request or at least less than 9 requests. For this reason I have received 429 too many requests error code from time to time.
 
+
 ## Local Debugging
+
 Set env variable APIKEY to your api key
 
 Run the main.py file which will spawn you webserver and you can make requests on 0.0.0.0:8080.

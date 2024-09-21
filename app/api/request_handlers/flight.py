@@ -12,6 +12,7 @@ from connector.kiwi_connector import KiwiConnector
 logger = logging.getLogger(__name__)
 date_pattern = re.compile(r"^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/(\d{4})$")
 
+
 class FlightHandler:
 
     def __init__(self) -> None:
@@ -78,34 +79,46 @@ class FlightHandler:
           '400':
             description: Invalid parameters
         """
-        source_country = request.rel_url.query.get('source_country')
-        destination_country = request.rel_url.query.get('destination_country')
+        source_country = request.rel_url.query.get('source_country').lower()
+        destination_country = request.rel_url.query.get('destination_country').lower()
         departure_date = request.rel_url.query.get('departure_date')
 
         if not self._is_valid_date(departure_date):
             raise WrongDateError(departure_date)
 
-        # check if we have already such flight cached for such date and return if yes
-        json_resp = await self._flight_cache.get_flights(f'{source_country}-{destination_country}-{departure_date}')
-        if json_resp:
-            return web.json_response(json_resp)
-
-        # try to search in cache the relevant airports
+        # try to search in cache the relevant airports from country itself
         source_airports = await self._airport_cache.get_airports(source_country)
         destination_airports = await self._airport_cache.get_airports(destination_country)
 
         async with KiwiConnector() as connector:
-            # if we did not cache figure out country id and its top airports right after
+            # if we have it saved under different name cause there was a typo and elk resolved it country ids might be already saved
             if not source_airports:
                 source_country_id = await connector.get_country(source_country)
-                source_airports = await connector.get_airports(source_country_id)
-                asyncio.create_task(self._airport_cache.set_airports(source_country, source_airports))
+                source_airports = await self._airport_cache.get_airports(source_country_id)
+                if source_airports:
+                    asyncio.create_task(self._airport_cache.set_airports(source_country, destination_airports))
             if not destination_airports:
                 destination_country_id = await connector.get_country(destination_country)
+                destination_airports = await self._airport_cache.get_airports(destination_country_id)
+                if destination_airports:
+                    asyncio.create_task(self._airport_cache.set_airports(destination_country, destination_airports))
+
+            if not source_airports:
+                source_airports = await connector.get_airports(source_country_id)
+                asyncio.create_task(self._airport_cache.set_airports(source_country_id, source_airports))
+                asyncio.create_task(self._airport_cache.set_airports(source_country, source_airports))
+            if not destination_airports:
                 destination_airports = await connector.get_airports(destination_country_id)
+                asyncio.create_task(self._airport_cache.set_airports(destination_country_id, destination_airports))
                 asyncio.create_task(self._airport_cache.set_airports(destination_country, destination_airports))
 
-            # search for each source airport with each destination airport
+            # at this stage we should definitely have top ariports from source and destination so we can check if we have already such flights cached
+            # for such date and return if yes
+            json_resp = await self._flight_cache.get_flights(f'{",".join(source_airports)}-{",".join(destination_airports)}-{departure_date}')
+            if json_resp:
+                return web.json_response(json_resp)
+
+            # if we don t have yet flights searched for such countries and date, search for each source airport with each destination airport
             coros = []
             for src_airport in source_airports:
                 for dst_airport in destination_airports:
@@ -115,8 +128,8 @@ class FlightHandler:
             for resp in responses:
                 if resp:
                     output.append(resp)
-            asyncio.create_task(self._flight_cache.set_flights(key=f'{source_country}-{destination_country}-{departure_date}',
-                                                                   values=output))
+            asyncio.create_task(self._flight_cache.set_flights(key=f'{",".join(source_airports)}-{",".join(destination_airports)}-{departure_date}',
+                                                               values=output))
 
         return web.json_response(sorted(output, key=lambda x: x['price']))
 
